@@ -12,6 +12,11 @@
 				"sound",
 				"alert"
 			]
+		},
+		"LocalNotifications": {
+			"smallIcon": "ic_launcher",
+			"iconColor": "#F59E0B",
+			"sound": "smartrun_order_alert.wav"
 		}
 	}
 }

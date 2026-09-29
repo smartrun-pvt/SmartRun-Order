@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+:root {
+  --android-status-bar-gap: 0px;
+}
+
+/* When running on Android app or full-screen mobile standalone, provide standard status bar headroom */
+.is-android-app,
+html.is-android-app,
+body.is-android-app {
+  --android-status-bar-gap: 32px;
+}
+
 @layer utilities {
   .font-serif-display {
     font-family: 'Cormorant Garamond', Georgia, Cambria, 'Times New Roman', Times, serif;
@@ -8,10 +19,22 @@
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
   .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 1rem);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
   .pt-safe {
-    padding-top: env(safe-area-inset-top, 0rem);
+    padding-top: max(env(safe-area-inset-top, 0px), var(--android-status-bar-gap, 0px));
+  }
+  .pt-safe-bar {
+    padding-top: max(env(safe-area-inset-top, 0px), var(--android-status-bar-gap, 0px));
+  }
+  .pt-safe-header {
+    padding-top: calc(max(env(safe-area-inset-top, 0px), var(--android-status-bar-gap, 0px)) + 0.75rem);
+  }
+  .pt-safe-top {
+    padding-top: calc(max(env(safe-area-inset-top, 0px), var(--android-status-bar-gap, 0px)) + 0.85rem);
+  }
+  .top-safe-alert {
+    top: calc(max(env(safe-area-inset-top, 0px), var(--android-status-bar-gap, 0px)) + 0.75rem);
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;

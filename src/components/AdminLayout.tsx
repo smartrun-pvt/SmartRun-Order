@@ -12,9 +12,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Global Sound / Realtime Modals */}
       <NotificationSettingsModal />
 
-      {/* Full-width Main Content Area (Clean layout across all screen sizes) */}
+      {/* Full-width Main Content Area (Clean layout across all screen sizes with status bar headroom) */}
       <div className="flex-1 flex flex-col w-full">
-        <main className="flex-1 p-3 sm:p-6 pt-4 sm:pt-6 pb-24 sm:pb-28 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-6 pt-safe-top sm:pt-6 pb-24 sm:pb-28 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>

@@ -229,35 +229,106 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     playSoundEffect(type, settings.volume);
   };
 
+  const dispatchBrowserNotification = useCallback(
+    async (order: Order, customTitle?: string, customBody?: string) => {
+      if (typeof window === 'undefined' || !('Notification' in window)) {
+        return;
+      }
+
+      // Check current permission state
+      const perm = Notification.permission;
+      if (perm !== 'granted') {
+        return;
+      }
+
+      const shortId = order.id ? `#${order.id.slice(0, 8).toUpperCase()}` : '';
+      const notifTitle = customTitle || `⚡ New Order Received ${shortId}`;
+      const notifBody =
+        customBody ||
+        `${order.recipient_name || 'Customer'} • ₹${order.total_amount || 0} • ${order.city || 'Express Delivery'}`;
+      const targetUrl = `/orders/${order.id}`;
+
+      const options: any = {
+        body: notifBody,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [300, 150, 300, 150, 600],
+        tag: `smartrun-order-${order.id}`,
+        renotify: true,
+        requireInteraction: true,
+        data: {
+          url: targetUrl,
+          orderId: order.id,
+        },
+      };
+
+      // 1. Try Service Worker showNotification first (Required on Chrome Android & works in PWA/Desktop)
+      if ('serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && typeof reg.showNotification === 'function') {
+            await reg.showNotification(notifTitle, options);
+            return;
+          }
+        } catch (swErr) {
+          console.warn('[BrowserNotification] Service worker showNotification error:', swErr);
+        }
+      }
+
+      // 2. Fallback to standard window.Notification constructor
+      try {
+        const notification = new Notification(notifTitle, options);
+        notification.onclick = () => {
+          window.focus();
+          window.location.href = targetUrl;
+        };
+      } catch (err) {
+        console.warn('[BrowserNotification] Notification constructor error:', err);
+      }
+    },
+    []
+  );
+
   const requestDesktopPermission = async (): Promise<boolean> => {
+    let granted = false;
+
+    // 1. Android Capacitor LocalNotifications
     if (Capacitor.isNativePlatform()) {
       try {
         const res = await LocalNotifications.requestPermissions();
-        const granted = res.display === 'granted';
-        setDesktopPermissionState(granted ? 'granted' : 'denied');
-        updateSettings({ desktopNotifications: granted });
-        return granted;
+        granted = res.display === 'granted';
       } catch (e) {
         console.warn('Capacitor notification permission request failed:', e);
-        return false;
       }
     }
 
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      setDesktopPermissionState('unsupported');
-      return false;
+    // 2. Web Browser Notification API
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        setDesktopPermissionState(permission);
+        if (permission === 'granted') {
+          granted = true;
+          // Send an immediate confirmation notification to demonstrate browser notification active
+          dispatchBrowserNotification(
+            {
+              id: 'active-' + Date.now().toString(36).slice(-4),
+              status: 'pending',
+              recipient_name: 'SmartRun Operations',
+              total_amount: 1250,
+              city: 'Warehouse Hub',
+            } as Order,
+            '🔔 Browser Notifications Enabled!',
+            'Instant ringing alerts and popup notifications will appear for every new order.'
+          );
+        }
+      } catch (err) {
+        console.warn('Notification permission error:', err);
+      }
     }
 
-    try {
-      const permission = await Notification.requestPermission();
-      setDesktopPermissionState(permission);
-      const isGranted = permission === 'granted';
-      updateSettings({ desktopNotifications: isGranted });
-      return isGranted;
-    } catch (err) {
-      console.warn('Notification permission error:', err);
-      return false;
-    }
+    updateSettings({ desktopNotifications: granted });
+    return granted;
   };
 
   const dismissAlert = () => {
@@ -324,29 +395,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
 
-      // 4. Desktop / Web Browser System Notification
-      if (
-        !Capacitor.isNativePlatform() &&
-        settings.desktopNotifications &&
-        typeof window !== 'undefined' &&
-        'Notification' in window &&
-        Notification.permission === 'granted'
-      ) {
-        try {
-          const notification = new Notification(notifTitle, {
-            body: notifBody,
-            icon: '/icon-192.png',
-          });
-          notification.onclick = () => {
-            window.focus();
-            window.location.href = `/orders/${order.id}`;
-          };
-        } catch (err) {
-          console.warn('Could not display system desktop notification:', err);
-        }
+      // 4. Desktop & Mobile Web Browser System Notification
+      if (settings.desktopNotifications) {
+        await dispatchBrowserNotification(order, notifTitle, notifBody);
       }
     },
-    [settings]
+    [settings, dispatchBrowserNotification]
   );
 
   // Test simulation helper
@@ -369,6 +423,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     triggerNewOrderAlert(fakeOrder);
+
+    // Also trigger browser notification for verification
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        dispatchBrowserNotification(
+          fakeOrder,
+          '⚡ Test Order Alert Ringing',
+          'Rajesh Sharma • ₹1,450 • Ahmedabad (Browser Notification Active)'
+        );
+      } else if (Notification.permission === 'default') {
+        requestDesktopPermission();
+      }
+    }
   };
 
   // Initial fetch to populate known order IDs

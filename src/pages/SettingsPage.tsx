@@ -151,7 +151,7 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
       {/* Top App Bar - Clean without description and without star logo */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs px-4 py-3">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs px-4 pt-safe-header pb-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button

@@ -29,7 +29,10 @@ import {
   Box,
   Truck,
   Bike,
+  Bell,
+  X,
 } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
 import { PackingQueuePage } from './PackingQueuePage';
 import { ReadyOrdersPage } from './ReadyOrdersPage';
 import { DispatchBoardPage } from './DispatchBoardPage';
@@ -121,6 +124,20 @@ export const OrdersListPage: React.FC<OrdersListPageProps> = ({ defaultTab }) =>
   });
 
   // Real-time stage counts for minimal badges
+  const {
+    desktopPermissionState,
+    requestDesktopPermission,
+    testOrderNotification,
+  } = useNotifications();
+
+  const [hideNotifBanner, setHideNotifBanner] = useState(() => {
+    try {
+      return localStorage.getItem('smartrun_hide_browser_notif_banner') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [counts, setCounts] = useState<OrderStatusCounts>({
     all: 0,
     pending: 0,
@@ -465,7 +482,57 @@ export const OrdersListPage: React.FC<OrdersListPageProps> = ({ defaultTab }) =>
             )}
           </button>
         </div>
+
+        {/* Quick test alert button for operators to verify sound & browser notifications */}
+        <button
+          type="button"
+          onClick={testOrderNotification}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 hover:text-slate-900 text-xs font-semibold shadow-2xs transition active:scale-95 cursor-pointer shrink-0"
+          title="Test audio chime and browser notification"
+        >
+          <Bell className="w-3.5 h-3.5 text-amber-500" />
+          <span>Test Alert</span>
+        </button>
       </div>
+
+      {/* Browser Notification Prompt Banner when permission is not yet granted */}
+      {desktopPermissionState === 'default' && !hideNotifBanner && (
+        <div className="flex items-center justify-between gap-3 p-3 bg-amber-50/90 border border-amber-200 rounded-2xl shadow-2xs text-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 shadow-2xs">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">Enable Browser Notifications</p>
+              <p className="text-slate-600 text-[11px]">
+                Receive instant audible popups and notifications in your browser whenever a new order arrives.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={requestDesktopPermission}
+              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs shadow-2xs transition active:scale-95 cursor-pointer"
+            >
+              Allow
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setHideNotifBanner(true);
+                try {
+                  localStorage.setItem('smartrun_hide_browser_notif_banner', 'true');
+                } catch {}
+              }}
+              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-amber-100 transition cursor-pointer"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Dynamic Views: Packing, Packed, Dispatch, or Order */}
       {activeTab === 'packing' && <PackingQueuePage />}

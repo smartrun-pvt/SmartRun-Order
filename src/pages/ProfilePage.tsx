@@ -132,7 +132,7 @@ export const ProfilePage: React.FC = () => {
       {/* Profile Details displayed directly on background page without box design */}
       <div
         id="profile-header-banner"
-        className="px-4 sm:px-6 pt-4 pb-2 transition-all"
+        className="px-4 sm:px-6 pt-safe-top sm:pt-6 pb-2 transition-all"
       >
         <div className="max-w-xl mx-auto">
           {/* Top Bar: Back Button */}

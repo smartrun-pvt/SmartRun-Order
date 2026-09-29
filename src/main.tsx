@@ -2,6 +2,10 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { initSafeArea } from './utils/safeArea';
+
+// Initialize safe area headroom for Android app and mobile screens
+initSafeArea();
 
 // Register service worker for Progressive Web App (PWA) installation
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {

@@ -168,7 +168,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white sm:bg-slate-50/50 flex flex-col justify-between py-6 px-4 sm:px-6 font-sans antialiased text-slate-900">
+    <div className="min-h-screen bg-white sm:bg-slate-50/50 flex flex-col justify-between pt-safe-top pb-6 sm:py-6 px-4 sm:px-6 font-sans antialiased text-slate-900">
       {/* Centered Main Container */}
       <div className="w-full max-w-[390px] mx-auto my-auto pt-2 pb-6">
         {/* App Logo & Brand Header */}

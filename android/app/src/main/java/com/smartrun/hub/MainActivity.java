@@ -30,7 +30,43 @@ public class MainActivity extends BridgeActivity {
             e.printStackTrace();
         }
 
-        // 2. Create high priority notification channel with our app's custom loud sound file
+        // 2. Ensure Android status bar (time, battery, network line) does not obscure top navbar
+        try {
+            int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            int statusBarHeightPx = resourceId > 0 ? getResources().getDimensionPixelSize(resourceId) : 0;
+            float density = getResources().getDisplayMetrics().density;
+            final int statusBarHeightDp = density > 0 ? Math.round(statusBarHeightPx / density) : 32;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Ensure dark status bar icons on light background so phone time, battery, network line are crisp & visible
+                if (getWindow().getInsetsController() != null) {
+                    getWindow().getInsetsController().setSystemBarsAppearance(
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    );
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                android.view.View decor = getWindow().getDecorView();
+                decor.setSystemUiVisibility(decor.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+
+            if (this.bridge != null && this.bridge.getWebView() != null) {
+                this.bridge.getWebView().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String js = "document.documentElement.style.setProperty('--android-status-bar-gap', '" + statusBarHeightDp + "px');" +
+                                        "document.documentElement.classList.add('is-android-app');";
+                            bridge.getWebView().evaluateJavascript(js, null);
+                        } catch (Exception ignored) {}
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 3. Create high priority notification channel with our app's custom loud sound file
         createNotificationChannel();
     }
 

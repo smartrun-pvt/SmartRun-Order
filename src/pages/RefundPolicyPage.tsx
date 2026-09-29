@@ -16,7 +16,7 @@ export const RefundPolicyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs px-4 py-3.5">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs px-4 pt-safe-header pb-3.5">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button
             id="refund-policy-back-btn"
